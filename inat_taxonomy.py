@@ -1,4 +1,4 @@
-import csv, sys, os, time, locale
+import csv, sys, os, time, locale, zipfile, io
 import inat_api
 
 # The directory where this Python script is located.
@@ -7,10 +7,12 @@ if os.path.islink(sys.argv[0]):
     INSTALL_DIR = os.path.join(INSTALL_DIR,
                                os.path.dirname(os.readlink(sys.argv[0])))
 
-# This directory contains the taxonomy and all common names, e.g. taxa.csv and
-# VernacularNames-english.csv. To populate that directory, download and unzip
-# https://www.inaturalist.org/taxa/inaturalist-taxonomy.dwca.zip
-INAT_TAXONOMY_DIRECTORY = os.path.join(INSTALL_DIR, 'inaturalist-taxonomy')
+# This zip file contains the taxonomy and all common names.
+# Download https://www.inaturalist.org/taxa/inaturalist-taxonomy.dwca.zip and
+# leave this zip file in directory 'inaturalist-taxonomy'. Do not extract the
+# files from this zip archive.
+INAT_TAXONOMY = os.path.join(INSTALL_DIR, 'inaturalist-taxonomy',
+                             'inaturalist-taxonomy.dwca.zip')
 
 # A special node represents the root of the tree, the parent of kingdoms.
 ROOT_TAXON_ID   = 48460
@@ -99,47 +101,49 @@ def load_inat_taxonomy():
     gName2Taxa = {}
     gId2Taxon = {}
 
-    path = os.path.join(INAT_TAXONOMY_DIRECTORY, 'taxa.csv')
-    if not os.path.exists(path):
-        if not os.path.isdir(INAT_TAXONOMY_DIRECTORY):
-            print("Cannot load taxonomy, directory "
-                  f"'{INAT_TAXONOMY_DIRECTORY}' does not exist.")
-        else:
-            print(f"Cannot load taxonomy, file '{path}' does not exist.")
-        return False
+    try:
+        with zipfile.ZipFile(INAT_TAXONOMY, 'r') as zf:
+            with zf.open('taxa.csv', 'r') as zfile:
+                with io.TextIOWrapper(zfile, encoding = 'latin-1') as csvfile:
+                    reader = csv.DictReader(csvfile)
+                    for row in reader:
+                        id = int(row['id'])
+                        parent_id = row['parentNameUsageID'].split('/')[-1]
+                        parent_id = int(parent_id) if parent_id else \
+                                 ROOT_TAXON_ID if id != ROOT_TAXON_ID else None
+                        name = row['scientificName']
+                        rank = row['taxonRank']
+                        if not rank in gName2RankLevel:
+                            response = inat_api.get_taxa_by_id(id)
+                            if response and 'results' in response:
+                                rank_level = response['results'][0]\
+                                                     ['rank_level']
+                                gName2RankLevel[rank] = rank_level
+                                if not rank_level in gRankLevel2Name:
+                                    gRankLevel2Name[rank_level] = rank
+                                print(f"Please add rank '{rank}' to gName2Rank"
+                                      f"Level, numeric value {rank_level}.")
+                            else:
+                                gName2RankLevel[rank] = -1
+                        rank_level = gName2RankLevel[rank]
+                        inat_taxon = (id, parent_id, name, rank_level)
+                        if name in gName2Taxa:
+                            gName2Taxa[name].append(inat_taxon)
+                        else:
+                            gName2Taxa[name] = [inat_taxon]
+                        assert not id in gId2Taxon
+                        gId2Taxon[id] = inat_taxon
+        assert ROOT_TAXON_ID in gId2Taxon
+        print('Loaded iNaturalist taxonomy of %d taxa in %.1f secs.' %
+              (len(gId2Taxon), time.time() - tim))
+        return True
 
-    with open(path, 'r', encoding='latin-1') as csvfile:
-        reader = csv.DictReader(csvfile)
-        for row in reader:
-            id = int(row['id'])
-            parent_id = row['parentNameUsageID'].split('/')[-1]
-            parent_id = int(parent_id) if parent_id else \
-                          ROOT_TAXON_ID if id != ROOT_TAXON_ID else None
-            name = row['scientificName']
-            rank = row['taxonRank']
-            if not rank in gName2RankLevel:
-                response = inat_api.get_taxa_by_id(id)
-                if response and 'results' in response:
-                    rank_level = response['results'][0]['rank_level']
-                    gName2RankLevel[rank] = rank_level
-                    if not rank_level in gRankLevel2Name:
-                        gRankLevel2Name[rank_level] = rank
-                    print(f"Please add rank '{rank}' to gName2RankLevel, "
-                          f"numeric value {rank_level}.")
-                else:
-                    gName2RankLevel[rank] = -1
-            rank_level = gName2RankLevel[rank]
-            inat_taxon = (id, parent_id, name, rank_level)
-            if name in gName2Taxa:
-                gName2Taxa[name].append(inat_taxon)
-            else:
-                gName2Taxa[name] = [inat_taxon]
-            assert not id in gId2Taxon
-            gId2Taxon[id] = inat_taxon
-    assert ROOT_TAXON_ID in gId2Taxon
-    print('Loaded iNaturalist taxonomy of %d taxa in %.1f secs.' %
-          (len(gId2Taxon), time.time() - tim))
-    return True
+    except Exception as e:
+        print("Cannot load taxonomy 'taxa.csv' from archive "
+              f"'{INAT_TAXONOMY}': {str(e)}.")
+        gName2Taxa = {}
+        gId2Taxon = {}
+        return False
 
 # capitalize (most) words in common name; helper function for common names
 def beautify_common_name(name):
@@ -160,55 +164,65 @@ def annotate_common_names(id2taxon, all_common_names = False):
     if language in ['C', 'C.UTF-8', 'POSIX']:
         language = 'en'
 
-    if not os.path.isdir(INAT_TAXONOMY_DIRECTORY):
-        print("Cannot load common names, directory "
-              f"'{INAT_TAXONOMY_DIRECTORY}' does not exist.")
+    if not os.path.isfile(INAT_TAXONOMY):
+        print("Cannot load common names, archive "
+              f"'{INAT_TAXONOMY}' does not exist.")
         return
 
-    # check all common names files for names in our language
-    perfect_match = []
-    other_matches = []
-    for filename in os.listdir(INAT_TAXONOMY_DIRECTORY):
-        if filename.startswith("VernacularNames-") and \
-           filename.endswith(".csv"):
-            path = os.path.join(INAT_TAXONOMY_DIRECTORY, filename)
-            with open(path, 'r', encoding='utf-8') as csvfile:
-                reader = csv.DictReader(csvfile)
-                for row in reader:
-                    lang = row['language']
-                    if lang == language:
-                        perfect_match.append(path)  # 'en' vs 'en'
-                    elif len(lang) < len(language) and \
-                         lang == language[:len(lang)]:
-                        other_matches.append(path)  # 'en' vs 'en_US'
-                    break
+    try:
+        with zipfile.ZipFile(INAT_TAXONOMY, 'r') as zf:
+            perfect_match = []
+            other_matches = []
 
-    if not perfect_match and not other_matches:
-        print(f"Cannot find common name files for language '{language}'.")
-        return
+            # check all common names files for names in our language
+            for fname in zf.namelist():
+                if fname.startswith("VernacularNames-") and \
+                   fname.endswith(".csv"):
+                    with zf.open(fname, 'r') as zfile:
+                        with io.TextIOWrapper(zfile, encoding='utf-8') as csvf:
+                            reader = csv.DictReader(csvf)
+                            for row in reader:
+                                lang = row['language']
+                                if lang == language:
+                                    perfect_match.append(fname)  # en vs en
+                                elif len(lang) < len(language) and \
+                                     lang == language[:len(lang)]:
+                                    other_matches.append(fname)  # en vs en_US
+                                break
 
-    # annotate the common names
-    total_names = loaded_names = 0
-    for path in perfect_match + other_matches:
-        print(f"Reading common names from file '{path}'...")
-        with open(path, 'r', encoding='utf-8') as csvfile:
-            reader = csv.DictReader(csvfile)
-            for row in reader:
-                total_names += 1
-                id = int(row['id'])
-                if id in id2taxon and \
-                   (all_common_names or id2taxon[id].common_name is None):
-                    loaded_names += 1
-                    cname = beautify_common_name(row['vernacularName'])
-                    if id2taxon[id].common_name is None:
-                        id2taxon[id].common_name = cname
-                    else:
-                        id2taxon[id].common_name += '; ' + cname
+            if not perfect_match and not other_matches:
+                print("Cannot find common names for language '{language}'.")
+                return
 
-    print('Read %d common names in %.1f secs, loaded %d for %d '
-          'taxa in language "%s".' %
-          (total_names, time.time() - tim, loaded_names, len(id2taxon)-1,
-           language))
+            # annotate the taxa with common names
+            total_names = loaded_names = 0
+            for fname in perfect_match + other_matches:
+                print(f"Reading common names from archive '{INAT_TAXONOMY}' "
+                      f"member '{fname}'...")
+                with zf.open(fname, 'r') as zfile:
+                    with io.TextIOWrapper(zfile, encoding='utf-8') as csvf:
+                        reader = csv.DictReader(csvf)
+                        for row in reader:
+                            total_names += 1
+                            id = int(row['id'])
+                            if id in id2taxon and (all_common_names or \
+                                            id2taxon[id].common_name is None):
+                                loaded_names += 1
+                                cname = beautify_common_name(row['vernacular'
+                                                                 'Name'])
+                                if id2taxon[id].common_name is None:
+                                    id2taxon[id].common_name = cname
+                                else:
+                                    id2taxon[id].common_name += '; ' + cname
+
+        print('Read %d common names in %.1f secs, loaded %d for %d '
+              'taxa in language "%s".' %
+              (total_names, time.time() - tim, loaded_names, len(id2taxon)-1,
+               language))
+
+    except Exception as e:
+        print(f"Cannot load common names from archive '{INAT_TAXONOMY}':"
+              f" {str(e)}.")
 
 # ancestors are a list of 4-tuples (id, parent_id, name, rank_level)
 # they are ordered from the kingdom down

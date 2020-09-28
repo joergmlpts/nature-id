@@ -1,3 +1,3 @@
-The taxonomy and common names belong in this directory, e.g. files taxa.csv and VernacularNames-english.csv.
+The .zip archive with the taxonomy and common names belongs in this directory.
 
-Download https://www.inaturalist.org/taxa/inaturalist-taxonomy.dwca.zip and unzip it in this directory.
+Download https://www.inaturalist.org/taxa/inaturalist-taxonomy.dwca.zip to this directory. Do not unpack this archive.

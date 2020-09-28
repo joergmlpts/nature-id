@@ -2,7 +2,7 @@
 
 This repository provides Python code that identifies plants, birds, and insects in photos.
 
-This project was inspired by the amazing progress in identifying plants, animals and mushrooms in photos that has been made by [iNaturalist](https://iNaturalist.org) in the past years. The iNaturalist team has trained machine learning models with their vast collection of photos and research-grade identifications. In 2019, iNaturalist released [Seek by iNaturalist](https://www.inaturalist.org/pages/seek_app) which identifies photos offline on the phone and identifies to a higher level than species when an identification to species cannot be made. 
+This project was inspired by the amazing progress in identifying plants, animals and mushrooms in photos that has been made by [iNaturalist](https://iNaturalist.org) in the past years. The iNaturalist team has trained machine learning models with their vast collection of photos and research-grade identifications. In 2019, iNaturalist released [Seek by iNaturalist](https://www.inaturalist.org/pages/seek_app) which identifies photos offline on the phone and identifies to a higher level than species when an identification to species cannot be made.
 
 Google provides three models that have been trained with iNaturalist data - classification models for plants, birds, and insects. These Google models can be downloaded and used with Google's `TensorFlow` and `TensorFlow Lite` tools.
 
@@ -191,7 +191,7 @@ On the above web pages scroll down and under **Output** click on *labelmap* to d
 
 ### Taxonomy and Common Names Files
 
-The trained models come with scientific names as labels and many of those scientific names are already outdated. The common names and current taxonomy are obtained from this file: [https://www.inaturalist.org/taxa/inaturalist-taxonomy.dwca.zip](https://www.inaturalist.org/taxa/inaturalist-taxonomy.dwca.zip) This tool expects the contents of this zip archive in directory `inaturalist-taxonomy`.
+The trained models come with scientific names as labels and many of those scientific names are already outdated. The common names and current taxonomy are obtained from this file: [https://www.inaturalist.org/taxa/inaturalist-taxonomy.dwca.zip](https://www.inaturalist.org/taxa/inaturalist-taxonomy.dwca.zip) This tool expects this zip archive in directory `inaturalist-taxonomy`.
 
 ## Sample Photos
 
@@ -295,7 +295,7 @@ Info: Taxon 'Rosmarinus officinalis' changed to 'Salvia rosmarinus', iNat taxa i
 Info: Taxon 'Cynoglossum grande' changed to 'Adelinia grande', iNat taxa id 769151.
 Computed taxonomic tree from labels in 64.8 secs: 4091 taxa including 2102 leaf taxa.
 Taxonomy written to file 'classifiers\aiy_plants_V1_taxonomy.csv'.
-Reading common names from file 'inaturalist-taxonomy\VernacularNames-english.csv'...
+Reading common names from archive 'inaturalist-taxonomy\inaturalist-taxonomy.dwca.zip' member 'VernacularNames-english.csv'...
 Read 203093 common names in 1.5 secs, loaded 3071 for 4091 taxa in language "en_US".
 ```
 
@@ -342,13 +342,13 @@ This message is followed by 45 seconds of silence. When a name is not found in t
 Info: Taxon 'Mimulus aurantiacus' changed to 'Diplacus', iNat taxa id 777236.
 ```
 
-This message deserves a closer look. Species *Mimulus aurantiacus* in the label file is replaced with genus *Diplacus* and not with the current species *Diplacus aurantiacus*.
+Species *Mimulus aurantiacus* in the label file is replaced with genus *Diplacus* and not with the current species *Diplacus aurantiacus*. This looks like a bug and hence deserves a closer look.
 
 The reason for `nature_id`'s decision is that *Mimulus aurantiacus* consisted of multiple varieties *Mimulus aurantiacus aurantiacus*, *Mimulus aurantiacus grandiflorus*, *Mimulus aurantiacus parviflorus*, and 3 more. 
 
-In the current taxonomy, these varieties have become species, *Diplacus aurantiacus*, *Diplacus grandiflorus*, and *Diplacus parviflorus*. *Diplacus aurantiacus* does not replace *Mimulus aurantiacus*; it replaces the variety *Mimulus aurantiacus aurantiacus*.
+In the current taxonomy, these varieties are species *Diplacus aurantiacus*, *Diplacus grandiflorus*, and *Diplacus parviflorus*. *Diplacus aurantiacus* does not replace *Mimulus aurantiacus*; it replaces the variety *Mimulus aurantiacus aurantiacus*.
 
-Another way of understanding this issue is realizing that photos of all varieties *Mimulus aurantiacus aurantiacus*, *Mimulus aurantiacus grandiflorus*, *Mimulus aurantiacus parviflorus* and the 3 others have been used to train the classification model to recognize *Mimulus aurantiacus*. In the current taxonomy, the label is triggered for any of the species *Diplacus  aurantiacus*, *Diplacus grandiflorus*, *Diplacus parviflorus*. `nature_id` cannot say which current species it is. It can only identify pictures as genus *Diplacus*.
+Another way of understanding this issue is realizing that photos of all varieties *Mimulus aurantiacus aurantiacus*, *Mimulus aurantiacus grandiflorus*, *Mimulus aurantiacus parviflorus* and the 3 others have been used to train the classification model to recognize *Mimulus aurantiacus*. In the current taxonomy, this label is triggered for any of the species *Diplacus  aurantiacus*, *Diplacus grandiflorus*, *Diplacus parviflorus*. `nature_id` cannot say which of current species it sees. It can only identify pictures as genus *Diplacus*.
 
 ```
 Taxonomy written to file 'classifiers\aiy_plants_V1_taxonomy.csv'.
@@ -356,4 +356,9 @@ Taxonomy written to file 'classifiers\aiy_plants_V1_taxonomy.csv'.
 
 A taxanomy for the scientific names in the label file has been sucessfully computed and this taxonomy was written to disk. Future calls will load this taxonomy instead of loading the labels and computing the taxonomy again and again.
 
+```
+Reading common names from archive 'inaturalist-taxonomy\inaturalist-taxonomy.dwca.zip' member 'VernacularNames-english.csv'...
+Read 203093 common names in 1.5 secs, loaded 3071 for 4091 taxa in language "en_US".
+```
 
+Common names have been read. The common names are always selected for the local language, not necessarily for English as shown here.
