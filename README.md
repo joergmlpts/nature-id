@@ -356,7 +356,7 @@ Another way of understanding this issue is realizing that photos of all varietie
 Taxonomy written to file 'classifiers\aiy_plants_V1_taxonomy.csv'.
 ```
 
-A taxanomy for the scientific names in the label file has been sucessfully computed and this taxonomy was written to disk. Future calls will load this taxonomy instead of loading the labels and computing the taxonomy again and again.
+A taxanomy for the scientific names in the label file has been sucessfully computed and this taxonomy was written to disk. Future calls will load this taxonomy instead of loading the labels and computing the taxonomy all over again.
 
 ```
 Reading common names from archive 'inaturalist-taxonomy\inaturalist-taxonomy.dwca.zip' member 'VernacularNames-english.csv'...
