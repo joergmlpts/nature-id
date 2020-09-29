@@ -44,6 +44,8 @@ Classification of 'plant_images/Persicaria_amphibia.jpg' took 0.2 secs.
  97.6%     species Water Smartweed (Persicaria amphibia)
 ```
 
+These probabitities can guide the identification: define a threshold and as result report the taxon with the lowest probability that is larger or equal to this threshold. In this example for a threshold of 95% an identification to species *Persicaria amphibia* has been achieved. For a threshold of 99%, this is only an identification to order *Caryophyllales*. 95% and 99% are unusually high; Seek, I think, uses a threshold of 70%.
+
 ## Command-line Options
 
 This script is a command-line tool. It is called with options, file names and directory names as arguments. These options are supported:
@@ -159,7 +161,7 @@ Classification of 'plant_images/Primula_hendersonii.jpg' took 0.2 secs.
 
 ## Dependencies
 
-Several items need to be installed in order for `nature-id.py` to run. A few Python packages are needed, classification models need to be downloaded and installed in directory `classifiers`, and finally the taxonomy and common names need to be downloaded and unpacked in directory `inaturalist-taxonomy`.
+Several items need to be installed in order for `nature-id.py` to run. A few Python packages are needed, classification models need to be downloaded and installed in directory `classifiers`, and finally the taxonomy and common names need to be downloaded to directory `inaturalist-taxonomy`.
 
 ### Python Packages
 
