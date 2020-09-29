@@ -44,7 +44,7 @@ Classification of 'plant_images/Persicaria_amphibia.jpg' took 0.2 secs.
  97.6%     species Water Smartweed (Persicaria amphibia)
 ```
 
-These probabitities can guide the identification: define a threshold and as result report the taxon with the lowest probability that is larger or equal to this threshold. In this example for a threshold of 95% an identification to species *Persicaria amphibia* has been achieved. For a threshold of 99%, this is only an identification to order *Caryophyllales*. 95% and 99% are unusually high; Seek, I think, uses a threshold of 70%.
+These probabitities can guide the identification: define a threshold and as result report the taxon with the lowest probability that is larger or equal to this threshold. In this example for a threshold of 95% an identification to species *Persicaria amphibia* has been achieved. For a threshold of 99%, this is only an identification to order *Caryophyllales*. 95% and 99% would be unusually high thresholds; Seek, I think, uses a threshold of 70%.
 
 ## Command-line Options
 
@@ -350,7 +350,7 @@ The reason for `nature_id`'s decision is that *Mimulus aurantiacus* consisted of
 
 In the current taxonomy, these varieties are species *Diplacus aurantiacus*, *Diplacus grandiflorus*, and *Diplacus parviflorus*. *Diplacus aurantiacus* does not replace *Mimulus aurantiacus*; it replaces the variety *Mimulus aurantiacus aurantiacus*.
 
-Another way of understanding this issue is realizing that photos of all varieties *Mimulus aurantiacus aurantiacus*, *Mimulus aurantiacus grandiflorus*, *Mimulus aurantiacus parviflorus* and the 3 others have been used to train the classification model to recognize *Mimulus aurantiacus*. In the current taxonomy, this label is triggered for any of the species *Diplacus  aurantiacus*, *Diplacus grandiflorus*, *Diplacus parviflorus*. `nature_id` cannot say which of current species it sees. It can only identify pictures as genus *Diplacus*.
+Another way of understanding this issue is realizing that photos of all varieties *Mimulus aurantiacus aurantiacus*, *Mimulus aurantiacus grandiflorus*, *Mimulus aurantiacus parviflorus* and the 3 others have been used to train the classification model to recognize *Mimulus aurantiacus*. In the current taxonomy, this label is triggered for any of the species *Diplacus  aurantiacus*, *Diplacus grandiflorus*, and *Diplacus parviflorus*. `nature_id` cannot say which of current species it sees. It can only identify pictures as genus *Diplacus*.
 
 ```
 Taxonomy written to file 'classifiers\aiy_plants_V1_taxonomy.csv'.
