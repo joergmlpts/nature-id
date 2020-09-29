@@ -97,7 +97,7 @@ def load_inat_taxonomy():
         return True # already loaded
 
     print('Loading iNaturalist taxonomy...')
-    tim = time.time()
+    start_time = time.time()
     gName2Taxa = {}
     gId2Taxon = {}
 
@@ -133,9 +133,15 @@ def load_inat_taxonomy():
                             gName2Taxa[name] = [inat_taxon]
                         assert not id in gId2Taxon
                         gId2Taxon[id] = inat_taxon
+                        if len(gId2Taxon) % 10000 == 0:
+                            print(f' {len(gId2Taxon):,} ' if len(gId2Taxon) %
+                                  100000 == 0 else '.', end='')
+                        sys.stdout.flush()
+
         assert ROOT_TAXON_ID in gId2Taxon
-        print('Loaded iNaturalist taxonomy of %d taxa in %.1f secs.' %
-              (len(gId2Taxon), time.time() - tim))
+        print(f' {len(gId2Taxon):,}.')
+        print(f'Loaded iNaturalist taxonomy of {len(gId2Taxon):,} taxa '
+              f'in {time.time()-start_time:.1f} secs.')
         return True
 
     except Exception as e:
@@ -158,7 +164,7 @@ def beautify_common_name(name):
 # Load the common names in our language, annotate taxonomic tree with them.
 # The parameter `id2taxon' includes the taxa we are interested in.
 def annotate_common_names(id2taxon, all_common_names = False):
-    tim = time.time()
+    start_time = time.time()
     language, _ = locale.getdefaultlocale()
 
     if language in ['C', 'C.UTF-8', 'POSIX']:
@@ -197,7 +203,7 @@ def annotate_common_names(id2taxon, all_common_names = False):
             # annotate the taxa with common names
             total_names = loaded_names = 0
             for fname in perfect_match + other_matches:
-                print(f"Reading common names from archive '{INAT_TAXONOMY}' "
+                print(f"Reading common names from '{INAT_TAXONOMY}' "
                       f"member '{fname}'...")
                 with zf.open(fname, 'r') as zfile:
                     with io.TextIOWrapper(zfile, encoding='utf-8') as csvf:
@@ -215,10 +221,9 @@ def annotate_common_names(id2taxon, all_common_names = False):
                                 else:
                                     id2taxon[id].common_name += '; ' + cname
 
-        print('Read %d common names in %.1f secs, loaded %d for %d '
-              'taxa in language "%s".' %
-              (total_names, time.time() - tim, loaded_names, len(id2taxon)-1,
-               language))
+        print(f'Read {total_names:,} common names in '
+              f'{time.time()-start_time:.1f} secs, loaded {loaded_names:,} '
+              f'in language "{language}" for {len(id2taxon)-1:,} taxa.')
 
     except Exception as e:
         print(f"Cannot load common names from archive '{INAT_TAXONOMY}':"

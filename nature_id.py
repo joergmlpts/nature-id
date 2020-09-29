@@ -83,7 +83,7 @@ class Taxonomy:
         return len(self.root.children) > 0
 
     def read_taxonomy(self, filename):
-        tim = time.time()
+        start_time = time.time()
         self.reset()
         with open(filename, newline='', encoding='latin-1') as csvfile:
             reader = csv.DictReader(csvfile)
@@ -122,8 +122,8 @@ class Taxonomy:
         if not self.taxonomy_available():
             # We parsed a label file; unless told otherwise, we use these
             # labels to build a taxonomic tree.
-            print("Read %d labels from '%s' in %.1f secs." %
-                  (len(self.idx2label), filename, time.time() - tim))
+            print(f"Read {len(self.idx2label):,} labels from '{filename}' "
+                  f"in {time.time() - start_time:.1f} secs.")
 
             if not label_probabilities_only:
                 self.compute_taxonomic_tree()
@@ -131,9 +131,10 @@ class Taxonomy:
                     self.write_taxonomic_tree(filename.replace('labelmap',
                                                                'taxonomy'))
         else:
-            print("Read taxonomy from '%s' in %.1f secs: %d taxa including %d "
-                  "leaf taxa." % (filename, time.time() - tim,
-                                  len(self.id2taxon) - 1, len(self.idx2label)))
+            print(f"Read taxonomy from '{filename}' in "
+                  f"{time.time() - start_time:.1f} secs: "
+                  f"{len(self.id2taxon) - 1:,} taxa including "
+                  f"{len(self.idx2label):,} leaf taxa.")
 
         if not scientific_names_only and self.taxonomy_available():
             inat_taxonomy.annotate_common_names(self.id2taxon, all_common_names)
@@ -181,7 +182,7 @@ class Taxonomy:
             label_probabilities_only = True
             return
 
-        tim = time.time()
+        start_time = time.time()
         IDX_ID         = inat_taxonomy.IDX_ID
         IDX_NAME       = inat_taxonomy.IDX_NAME
         IDX_RANK_LEVEL = inat_taxonomy.IDX_RANK_LEVEL
@@ -233,9 +234,9 @@ class Taxonomy:
                 prev_ancestor.add_child(taxon)
             taxon.leaf_class_ids.append(idx)
 
-        print('Computed taxonomic tree from labels in %.1f secs: '
-              '%d taxa including %d leaf taxa.' %
-              (time.time() - tim, len(self.id2taxon) - 1, len(self.idx2label)))
+        print("Computed taxonomic tree from labels in "
+              f"{time.time() - start_time:.1f} secs: {len(self.id2taxon)-1:,} "
+              f"taxa including {len(self.idx2label):,} leaf taxa.")
 
     # propagate probabilities to taxon and all below
     def assign_scores(self, taxon, probabilities):
@@ -307,16 +308,16 @@ class OfflineClassifier:
         self.mTaxonomy.read_taxonomy(filenames[1])
 
     def classify_image(self, image_filename):
-        tim = time.time()
+        start_time = time.time()
         try:
             img = Image.open(image_filename)
         except:
-            print("Error: cannot load image '%s'." % image_filename)
+            print(f"Error: cannot load image '{image_filename}'.")
             return []
 
         if img.mode != 'RGB':
-            print("Error: image '%s' is of mode '%s', only mode RGB is "
-                  "supported." % (image_filename, img.mode))
+            print(f"Error: image '{image_filename}' is of mode '{img.mode}',"
+                  " only mode RGB is supported.")
             return []
 
         # rotate image if needed as it may contain EXIF orientation tag
@@ -364,8 +365,9 @@ class OfflineClassifier:
         output_data = self.mInterpreter.get_tensor(self.mOutput_details[0]
                                                    ['index'])
         path = self.mTaxonomy.prediction(output_data[0])
-        print("\nClassification of '%s' took %.1f secs." %
-              (image_filename, time.time() - tim))
+        print()
+        print(f"Classification of '{image_filename}' took "
+              f"{time.time() - start_time:.1f} secs.")
         return path
 
 # Returns a dictionary that maps available classifiers to a pair of filenames.
@@ -415,9 +417,10 @@ def get_installed_models():
     delete_elements = [] # postponed deletion, cannot delete during iteration
     for name, files in models.items():
         if not files[0] or not files[1]:
+            tf_missing = ".csv file but no .tflite file"
+            csv_missing = ".tflite file but no .csv file"
             print("Installation issue: Excluding incomplete classifier for"
-                  " '%s': %s." % (name, ".csv file but no .tflite file"
-                  if files[1] else ".tflite file but no .csv file"))
+                  f" '{name}': {tf_missing if files[1] else csv_missing}.")
             delete_elements.append(name)
 
     for element in delete_elements:
@@ -438,9 +441,9 @@ def identify_species(classifier, filename):
         # ordered by taxonomic rank from kingdom down to species.
         for entry in result:
             if len(entry) == 2: # labels only
-                print('%5.1f%% %s' % (100 * entry[0], entry[1]))
+                print(f'{100 * entry[0]:5.1f}% {entry[1]}')
                 continue
-            print('%5.1f%% %11s %s' % (100 * entry[0], entry[2], entry[3]))
+            print(f'{100 * entry[0]:5.1f}% {entry[2]:11s} {entry[3]}')
 
 # command-line parsing
 
@@ -448,8 +451,8 @@ models = get_installed_models()
 
 def model_parameter_check(arg):
     if not arg in models:
-        s = '' if len(models) == 1 else 's'
-        msg = f"Model '{arg}' not available. Available model{s}:"
+        msg = f"Model '{arg}' not available. Available "\
+              f"model{'' if len(models)==1 else 's'}:"
         prefix = ' '
         for m in models:
             msg += f"{prefix}'{m}'"

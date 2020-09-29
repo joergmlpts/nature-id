@@ -207,9 +207,9 @@ This is how the first calls look like. We again use the plant model as an exampl
 
 ```
 PS C:\nature-id> python -m plants nature_id.py .\plant_images
-Read 2102 labels from 'classifiers\aiy_plants_V1_labelmap.csv' in 0.0 secs.
+Read 2,102 labels from 'classifiers\aiy_plants_V1_labelmap.csv' in 0.0 secs.
 Loading iNaturalist taxonomy...
-Loaded iNaturalist taxonomy of 993552 taxa in 15.2 secs.
+Loaded iNaturalist taxonomy of 993,552 taxa in 15.2 secs.
 Info: Taxon for label 'background' not found, inserting as pseudo-kingdom.
 Info: Taxon 'Eichhornia crassipes' changed to 'Pontederia crassipes', iNat taxa id 962637.
 Info: Taxon 'Potentilla anserina' changed to 'Argentina anserina', iNat taxa id 158615.
@@ -295,23 +295,23 @@ Info: Taxon 'Phoradendron tomentosum' changed to 'Phoradendron leucarpum', iNat 
 Info: Taxon 'Orobanche uniflora' changed to 'Aphyllon uniflorum', iNat taxa id 802714.
 Info: Taxon 'Rosmarinus officinalis' changed to 'Salvia rosmarinus', iNat taxa id 636795.
 Info: Taxon 'Cynoglossum grande' changed to 'Adelinia grande', iNat taxa id 769151.
-Computed taxonomic tree from labels in 64.8 secs: 4091 taxa including 2102 leaf taxa.
+Computed taxonomic tree from labels in 64.8 secs: 4,091 taxa including 2,102 leaf taxa.
 Taxonomy written to file 'classifiers\aiy_plants_V1_taxonomy.csv'.
-Reading common names from archive 'inaturalist-taxonomy\inaturalist-taxonomy.dwca.zip' member 'VernacularNames-english.csv'...
-Read 203093 common names in 1.5 secs, loaded 3071 for 4091 taxa in language "en_US".
+Reading common names from 'inaturalist-taxonomy\inaturalist-taxonomy.dwca.zip' member 'VernacularNames-english.csv'...
+Read 203,093 common names in 1.5 secs, loaded 3,071 in language "en_US" for 4,091 taxa.
 ```
 
 ### Messages Explained
 
 ```
-Read 2102 labels from 'classifiers\aiy_plants_V1_labelmap.csv' in 0.0 secs.
+Read 2,102 labels from 'classifiers\aiy_plants_V1_labelmap.csv' in 0.0 secs.
 ```
 
 `nature-id` reads a labelfile. If no errors occur, a taxonomy for these labels will be written and further runs will load `classifiers\aiy_plants_V1_taxonomy.csv` instead.
 
 ```
 Loading iNaturalist taxonomy...
-Loaded iNaturalist taxonomy of 993552 taxa in 15.2 secs.
+Loaded iNaturalist taxonomy of 993,552 taxa in 15.2 secs.
 ```
 
 The entire iNaturalist taxonomy of about 1 million taxa is loaded. `nature-id` will lookup the labels in this taxanomy and insert them with all their ancestors into a taxonomy for the labels.
@@ -359,8 +359,8 @@ Taxonomy written to file 'classifiers\aiy_plants_V1_taxonomy.csv'.
 A taxanomy for the scientific names in the label file has been sucessfully computed and this taxonomy was written to disk. Future calls will load this taxonomy instead of loading the labels and computing the taxonomy all over again.
 
 ```
-Reading common names from archive 'inaturalist-taxonomy\inaturalist-taxonomy.dwca.zip' member 'VernacularNames-english.csv'...
-Read 203093 common names in 1.5 secs, loaded 3071 for 4091 taxa in language "en_US".
+Reading common names from 'inaturalist-taxonomy\inaturalist-taxonomy.dwca.zip' member 'VernacularNames-english.csv'...
+Read 203,093 common names in 1.5 secs, loaded 3,071 in language "en_US" for 4,091 taxa.
 ```
 
 Common names have been read. The common names are always selected for the local language, not necessarily for English as shown here.
