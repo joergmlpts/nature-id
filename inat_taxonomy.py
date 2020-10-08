@@ -268,7 +268,9 @@ def lookup_id(name, desired_ranks = ['species', 'subspecies']):
         return (taxon, ancestors)
     else:
         # likely taxon change, query iNat API
-        response = inat_api.get_taxa_by_name(name, all_names=True)
+        response = inat_api.get_taxa({ 'q'         : name,
+                                       'all_names' : 'true',
+                                       'per_page'  : 200 })
         if not response:
             print(f"API lookup for name '{name}' failed.")
             return

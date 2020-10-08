@@ -87,12 +87,8 @@ def get_taxa_by_id(id):
     return cache[url][1]
 
 # returns taxa by name
-def get_taxa_by_name(name, only_id=False, all_names=False):
+def get_taxa(params):
     url = API_HOST + '/taxa'
-    params = { 'q'         : name,
-               'only_id'   : 'true' if only_id else 'false',
-               'all_names' : 'true' if all_names else 'false',
-               'per_page'  : 200 }
     key = pickle.dumps((url, params)).hex()
     tim = time.time()
     if not key in cache or cache[key][0] < tim - CACHE_EXPIRATION:
