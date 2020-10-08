@@ -22,8 +22,7 @@ if sys.platform == 'win32':
     DATA_DIR  = os.path.join(os.path.expanduser('~'),
                              'AppData', 'Local', 'inat_api')
 else:
-    DATA_DIR  = os.path.join(os.path.expanduser('~'), '.local', 'share',
-                             'inat_api')
+    DATA_DIR  = os.path.join(os.path.expanduser('~'), '.cache', 'inat_api')
 
 if not os.path.exists(DATA_DIR):
     os.makedirs(DATA_DIR)
@@ -89,6 +88,9 @@ def get_taxa_by_id(id):
 # returns taxa by name
 def get_taxa(params):
     url = API_HOST + '/taxa'
+    for key, val in params.items():
+        if type(val) == bool:
+            params[key] = 'true' if val else 'false'
     key = pickle.dumps((url, params)).hex()
     tim = time.time()
     if not key in cache or cache[key][0] < tim - CACHE_EXPIRATION:
