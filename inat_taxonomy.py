@@ -136,7 +136,7 @@ def load_inat_taxonomy():
                         if len(gId2Taxon) % 10000 == 0:
                             print(f' {len(gId2Taxon):,} ' if len(gId2Taxon) %
                                   100000 == 0 else '.', end='')
-                        sys.stdout.flush()
+                            sys.stdout.flush()
 
         assert ROOT_TAXON_ID in gId2Taxon
         print(f' {len(gId2Taxon):,}.')
