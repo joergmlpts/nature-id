@@ -37,26 +37,19 @@ class Throttle:
     API_INTERVAL  = 60   # 1 minute
 
     def __init__(self):
-        self.api_time  = 0  # start time of last API call sequence
-        self.api_count = 0  # number of calls in current API call sequence
+        self.callTimes = []   # times of api calls
 
     # wait if necessary to avoid more than API_MAX_CALLS in API_INTERVAL
     def wait(self):
-        tim = time.time()
-        if tim > self.api_time + self.API_INTERVAL:
-            self.start_sequence()
-        else:
-            self.api_count += 1
-            if self.api_count > self.API_MAX_CALLS:
-                sleep_delay = self.API_INTERVAL - (tim - self.api_time)
-                print('Throttling API calls, sleeping for %.1f seconds.' %
-                      sleep_delay)
-                time.sleep(sleep_delay)
-                self.start_sequence()
-
-    def start_sequence(self):
-        self.api_time = time.time()
-        self.api_count = 1
+        while len(self.callTimes) >= self.API_MAX_CALLS:
+            waitTime = self.callTimes[0] - (time.time() - self.API_INTERVAL)
+            if waitTime > 0:
+                print('Throttling API calls, '
+                      f'sleeping for {waitTime:.1f} seconds.')
+                time.sleep(waitTime)
+                continue
+            self.callTimes = self.callTimes[1:]
+        self.callTimes.append(time.time())
 
 api_call_throttle = Throttle()
 
