@@ -197,7 +197,7 @@ The trained models come with scientific names as labels and many of these scient
 
 ## Example Images
 
-Example Images pictures of plants are provided in the `plant_images` directory. The filenames indicate the species that I think is in the photo. Note that these examples ponly lead to successful identification to varying degrees. The *Mentzelia lindleyi* is certainly not correctly identified.
+Example Images pictures of plants are provided in the `plant_images` directory. The filenames indicate the species that I think is in the photo. Note that these examples only lead to successful identification to varying degrees. The *Mentzelia lindleyi* is certainly not correctly identified.
 
 ## Messages
 
