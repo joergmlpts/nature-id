@@ -2,17 +2,17 @@
 
 This repository provides Python code that identifies plants, birds, and insects in photos.
 
-This project was inspired by the amazing progress in identifying plants, animals and mushrooms in photos that has been made by [iNaturalist](https://iNaturalist.org) in the past years. The iNaturalist team has trained machine learning models with their vast collection of photos and research-grade identifications. In 2019, iNaturalist released [Seek by iNaturalist](https://www.inaturalist.org/pages/seek_app) which identifies photos offline on the phone and identifies to a higher level than species when an identification to species cannot be made.
+This project was inspired by the amazing progress in identifying plants, animals and mushrooms in photos that has been made by [iNaturalist](https://iNaturalist.org) in recent years in identifying plants, animals, and fungi from photographs. The iNaturalist team has trained machine learning models with their large collection of photos and research-grade identifications. In 2019, iNaturalist released [Seek by iNaturalist](https://www.inaturalist.org/pages/seek_app) which identifies photos offline on the phone and identifies to a higher level than species when a species identification cannot be made.
 
 Google provides three models that have been trained with iNaturalist data - classification models for plants, birds, and insects. These Google models can be downloaded and used with Google's `TensorFlow` and `TensorFlow Lite` tools.
 
-This code is based on the trained models that Google provides. It has been written to experiment with identification of species from photos and to give Seek's approach a try and compute probabilities across the taxonomic hierarchy.
+This code is based on the trained models provided by Google. It was written to experiment with identifying species from photos and to try out Seek's approach to calculating probabilities across the taxonomic hierarchy.
 
-This tool `nature_id.py` has been tested on Linux and Windows. It likely works on macOS as well.
+This tool `nature_id.py` has been tested on Linux and Windows. It should also work on MacOS.
 
 ## Usage
 
-This is a command-line tool. It is called with photos or directories that contain photos and identifies the plants, birds, and insects in these pictures.
+This is a command-line tool. It is invoked with images or directories containing images and identifies the plants, birds, and insects in those images.
 
 Here is an example. This is the command for Linux and macOS:
 
@@ -28,7 +28,7 @@ python .\nature_id.py -m plants plant_images\Persicaria_amphibia.jpg
 
 ![Smartweed](/plant_images/Persicaria_amphibia.jpg)
 
-The above picture results in this identification:
+The above image results in this identification:
 ```
 Classification of 'plant_images/Persicaria_amphibia.jpg' took 0.2 secs.
 100.0%     kingdom Plants (Plantae)
@@ -44,11 +44,11 @@ Classification of 'plant_images/Persicaria_amphibia.jpg' took 0.2 secs.
  97.6%     species Water Smartweed (Persicaria amphibia)
 ```
 
-These probabitities can guide the identification: define a threshold and as result report the taxon with the lowest probability that is larger or equal to this threshold. In this example for a threshold of 95% an identification to species *Persicaria amphibia* has been achieved. For a threshold of 99%, this is only an identification to order *Caryophyllales*. 95% and 99% would be unusually high thresholds; Seek, I think, uses a threshold of 70%.
+These probabitities can be used to guide identification: define a threshold and report as result the taxon with the lowest probability that is larger than or equal to this threshold. In this example for a threshold of 95% an identification to species *Persicaria amphibia* has been achieved. For a threshold of 99%, this is only an identification to order *Caryophyllales*. 95% and 99% would be unusually high thresholds; Seek, I believe, uses a threshold of 70%.
 
 ## Command-line Options
 
-This script is a command-line tool. It is called with options, file names and directory names as arguments. These options are supported:
+This script is a command-line utility. It is called with options, filenames and directory names as arguments. These options are supported:
 
 ```
 Usage: nature_id.py [-h] [-m MODEL] [-a] [-l] [-s] [-r RESULT_SIZE] file/directory [file/directory ...]
@@ -72,11 +72,11 @@ optional arguments:
 
 ### Option -m MODEL, --model MODEL
 
-The options `-m` and `--model` select a classification model. Possible models are `plants`, `birds`, and `insects`. These models need to be installed in directory `classifiers`. This option is required when more than one classifier is installed.
+The `-m` and `--model` options select a classification model. Possible models are `plants`, `birds`, and `insects`. These models must be installed in the `classifiers` directory. This option is required if more than one classifier is installed.
 
 ###  Option -a, --all_common_names
 
-The options `-a` and `--all_common_names` request that not only one common name but all common names are shown. Multiple common names are separated with semicolons. The output with this option looks like this:
+The `-a` and `--all_common_names` options cause all common names to be displayed, not just one. Multiple common names are separated by semicolons. The output with this option looks like this:
 
 ![Phyla_nodiflora.jpg](/plant_images/Phyla_nodiflora.jpg)
 
@@ -95,7 +95,7 @@ Classification of 'plant_images/Phyla_nodiflora.jpg' took 0.2 secs.
 
 ### Option -l, --label_probabilities_only
 
-Options `-l` and `--label_probabilities_only` switch from the taxonomic hierarchy view to a flat list of labels and their probabilities. The output with this option looks like this:
+The `-l` and `--label_probabilities_only` options switch from the taxonomic hierarchy view to a flat list of labels and their probabilities. The output with this option looks like this:
 
 ![Solidago_velutina_ssp_californica.jpg](/plant_images/Solidago_velutina_ssp_californica.jpg)
 
@@ -108,11 +108,11 @@ Classification of 'plant_images/Solidago_velutina_ssp_californica.jpg' took 0.2 
   0.4% Stiff-Leaved Goldenrod (Solidago rigida)
 ```
 
-Five labels with decreasing probability are shown by default. Options  `-r` and `--result_size` can be used to request fewer or more labels.
+Five labels with decreasing probability are shown by default. The `-r` and `--result_size` options can be used to request fewer or more labels.
 
 ### Option -s, --scientific_names_only
 
-Options `-s` and `--scientific_names_only` disable common names; only the scientific names will be shown.  The output with this option looks like this:
+The `-s` and `--scientific_names_only` options disable common names; only the scientific names are displayed.  The output with this option looks like this:
 
 ![Trichostema_lanceolatum.jpg](/plant_images/Trichostema_lanceolatum.jpg)
 
@@ -131,7 +131,7 @@ Classification of 'plant_images/Trichostema_lanceolatum.jpg' took 0.2 secs.
 
 ### Option -r RESULT_SIZE, --result_size RESULT_SIZE
 
-Options `-r` and `--result_size` modify the number of labels shown when a flat list of labels is requested with options `-l` or `--label_probabilities_only`. The default is 5. Options `-r` and `--result_size` allow a number between 1 and 100 to be chosen.
+The `-r` and `--result_size` options modify the number of labels displayed when a flat list of labels is requested with the `-l` or `--label_probabilities_only` options. The default is 5. Options `-r` and `--result_size` allow you to choose a number between 1 and 100.
 
 This is an example with 15 labels. The command-line for Linux is
 ```
@@ -161,25 +161,25 @@ Classification of 'plant_images/Primula_hendersonii.jpg' took 0.2 secs.
 
 ## Dependencies
 
-Several items need to be installed in order for `nature-id.py` to run. A few Python packages are needed, classification models need to be downloaded and installed in directory `classifiers`, and finally the taxonomy and common names need to be downloaded to directory `inaturalist-taxonomy`.
+Several things need to be installed in order for `nature-id.py` to run. Some Python packages are required, classification models need to be downloaded and installed into the `classifiers` directory, and finally the taxonomy and common names need to be downloaded into the `inaturalist-taxonomy` directory.
 
 ### Python Packages
 
-This code has been written in Python 3. Besides Python 3, packages `Pillow` and `requests` are used to load and process images and to access the iNaturalist API.
+This code is written in Python 3. Besides Python 3, the packages `Pillow` and `requests` are used to load and process images and to access the iNaturalist API.
 
-`Pillow` and `requests` can be installed on Ubuntu Linux with command `sudo apt install python3-pillow python3-requests` and on other platforms with command
+`Pillow` and `requests` can be installed on Ubuntu Linux with the command `sudo apt install python3-pillow python3-requests` and on other platforms with the command
 
 ```
 pip install Pillow requests
 ```
 
-When appropriate `pip3` should be called instead of `pip` to avoid accidentally installing packages for Python 2.
+Where appropriate `pip3` should be called instead of `pip` to avoid accidentally installing Python 2 packages.
 
-`TensorFlow Lite` is installed as described at [https://www.tensorflow.org/lite/guide/python](https://www.tensorflow.org/lite/guide/python). A file that is specific to both the platform and the Python version needs to be downloaded and installed with `pip` or `pip3`. On Windows call `python --version` and on Linux call `python3 --version` to doublecheck your Python version before downloading `TensorFlow Lite`.
+`TensorFlow Lite` is installed as described at [https://www.tensorflow.org/lite/guide/python](https://www.tensorflow.org/lite/guide/python). A file that is specific to both the platform and the Python version-specific file must be downloaded and installed with `pip` or `pip3`. On Windows call `python --version` and on Linux call `python3 --version` to check your Python version before downloading `TensorFlow Lite`.
 
 ### Classification Models
 
-The classification models and their labelmap files need to be downloaded from Google and they go in directory `classifiers`.
+The classification models and their labelmap files have to be downloaded from Google and they go into directory `classifiers`.
 
 The classifiers can be downloaded from these links:
 
@@ -189,21 +189,21 @@ The classifiers can be downloaded from these links:
 
 Each classifier consists of a `.tflite` model and a `.csv` labelmap file. Both are required.
 
-On the above web pages scroll down and under **Output** click on *labelmap* to download and save the labels. On Windows, the default action for a .csv file might be to open it in Excel. Be certain to save the .csv file to disk instead. Then scroll back up and under **Model formats** switch to *TFLite (aiyvision/classifier/...)*. There click on *Download* to get the `.tflite` file. Please also take note of paragraphs near the bottom of these web pages on suitable and unsuitable usecases and licensing.
+On the web pages above scroll down and under **Output** click on *labelmap* to download and save the labels. On Windows, the default action for a .csv file might be to open it in Excel. Be certain to save the .csv file to disk instead. Then scroll back up and under **Model formats** switch to *TFLite (aiyvision/classifier/...)*. There click on *Download* to get the `.tflite` file. Please also note the paragraphs at the bottom of these web pages about appropriate and inappropriate use cases and licensing.
 
 ### Taxonomy and Common Names Files
 
-The trained models come with scientific names as labels and many of those scientific names are already outdated. The common names and current taxonomy are obtained from this file: [https://www.inaturalist.org/taxa/inaturalist-taxonomy.dwca.zip](https://www.inaturalist.org/taxa/inaturalist-taxonomy.dwca.zip) This tool expects this zip archive in directory `inaturalist-taxonomy`.
+The trained models come with scientific names as labels and many of these scientific names are already outdated. The common names and the current taxonomy are obtained from this file: [https://www.inaturalist.org/taxa/inaturalist-taxonomy.dwca.zip](https://www.inaturalist.org/taxa/inaturalist-taxonomy.dwca.zip) This tool expects this zip archive in the `inaturalist-taxonomy` directory.
 
-## Sample Photos
+## Example Images
 
-Sample pictures of plants are provided in directory `plant_images`. The file names hint at the species that I think is in the photo. Note that these examples result in a successful identification only to varying degrees. The *Mentzelia lindleyi* is certainly not correctly identified.
+Example Images pictures of plants are provided in the `plant_images` directory. The filenames indicate the species that I think is in the photo. Note that these examples ponly lead to successful identification to varying degrees. The *Mentzelia lindleyi* is certainly not correctly identified.
 
 ## Messages
 
-The first call with a model transforms the labels into a taxonomic hierarchy. Each label is replaced with its representation in the current taxonomy and all its ancestors are added. This process takes some time and results in many messages. Once the hierarchy has been successfully computed, it is written to disk. Future calls of `nature_id.py` load the taxonomic hierarchy from disk instead of reading the labels and computing the taxonomy again.
+The first call with a model transforms the labels into a taxonomic hierarchy. Each label is replaced with its representation in the current taxonomy and all its ancestors are added. This process takes some time and results in many messages. Once the hierarchy has been successfully computed, it is written to disk. Future calls to `nature_id.py` will load the taxonomic hierarchy from disk instead of reading the labels and computing the taxonomy again.
 
-This is how the first calls look like. We again use the plant model as an example. The bird and insect models are smaller and result in fewer messages.
+This is what the first calls look like. Again, we use the plant model as an example. The bird and insect models are smaller and result in fewer messages.
 
 ```
 PS C:\nature-id> python -m plants nature_id.py .\plant_images
@@ -307,56 +307,56 @@ Read 203,093 common names in 1.5 secs, loaded 3,071 in language "en_US" for 4,09
 Read 2,102 labels from 'classifiers\aiy_plants_V1_labelmap.csv' in 0.0 secs.
 ```
 
-`nature-id` reads a labelfile. If no errors occur, a taxonomy for these labels will be written and further runs will load `classifiers\aiy_plants_V1_taxonomy.csv` instead.
+`nature-id` reads a label file. If no errors occur, a taxonomy will be written for these labels and further runs will load `classifiers\aiy_plants_V1_taxonomy.csv` instead.
 
 ```
 Loading iNaturalist taxonomy...
 Loaded iNaturalist taxonomy of 993,552 taxa in 15.2 secs.
 ```
 
-The entire iNaturalist taxonomy of about 1 million taxa is loaded. `nature-id` will lookup the labels in this taxanomy and insert them with all their ancestors into a taxonomy for the labels.
+The entire iNaturalist taxonomy of about 1 million taxa is loaded. `nature-id` will look up the labels in this taxonomy and insert them, along with all their ancestors, into a taxonomy for the labels.
 
 ```
 Info: Taxon for label 'background' not found, inserting as pseudo-kingdom.
 ```
 
-Label `background` was not found. It is not a species, but designates something else in the Google model. It is treated like a kingdom in the taxonomy; there are no ancestors to it.
+Label `background` was not found. It is not a species, but denotes something else in the Google model. It is treated as a kingdom in the taxonomy; it has no ancestors.
 
 ```
 Info: Taxon 'Potentilla anserina' changed to 'Argentina anserina', iNat taxa id 158615.
 ```
 
-In the current taxonomy, this species belongs to another genus. The numeric id in this message is useful to obtain more information. This number can be prefixed with `https://www.inaturalist.org/taxa/` and opened in a browser: [https://www.inaturalist.org/taxa/158615](https://www.inaturalist.org/taxa/158615).
+In the current taxonomy, this species belongs to a different genus. The numeric ID in this message is useful for getting more information. This number can be prefixed with `https://www.inaturalist.org/taxa/` and opened in a browser: [https://www.inaturalist.org/taxa/158615](https://www.inaturalist.org/taxa/158615).
 
 ```
 Warning: multiple taxa named 'Achillea millefolium': species 52821, complex 1105043; choosing species.
 ```
 
-The label name for this common yarrow is not unique, there are multiple taxa for this scientific name.  `nature-id` assumes that the species is the one we want.
+The label name for this common yarrow is not unique, there are several taxa for this scientific name.  `nature-id` assumes that the species is the one we want.
 
 ```
 Throttling API calls, sleeping for 44.5 seconds.
 ```
 
-This message is followed by 45 seconds of silence. When a name is not found in the the current taxonomy, the one loaded earlier with about 1 million taxa, then iNaturalist API calls are made to lookup the inactive scientific name. The iNaturalist team wants us to throttle API calls to no more than 60 calls per minute. This delay has been introduced to heed their request.
+This message is followed by 45 seconds of silence. When a name is not found in the the current taxonomy, the one previously loaded with about 1 million taxa, then iNaturalist API calls are made to look up the inactive scientific name. The iNaturalist team would like us to throttle API calls to no more than 60 calls per minute. This delay has been implemented to accommodate their request.
 
 ```
 Info: Taxon 'Mimulus aurantiacus' changed to 'Diplacus', iNat taxa id 777236.
 ```
 
-Species *Mimulus aurantiacus* in the label file is replaced with genus *Diplacus* and not with the current species *Diplacus aurantiacus*. This looks like a bug and hence deserves a closer look.
+The species *Mimulus aurantiacus* in the label file is replaced with the genus *Diplacus* and not with the current species *Diplacus aurantiacus*. This looks like a bug and hence deserves a closer look.
 
-The reason for `nature_id`'s decision is that *Mimulus aurantiacus* consisted of multiple varieties *Mimulus aurantiacus aurantiacus*, *Mimulus aurantiacus grandiflorus*, *Mimulus aurantiacus parviflorus*, and 3 more. 
+The reason for this decision of `nature_id` is that *Mimulus aurantiacus* consisted of several varieties *Mimulus aurantiacus aurantiacus*, *Mimulus aurantiacus grandiflorus*, *Mimulus aurantiacus parviflorus*, and 3 more.
 
 In the current taxonomy, these varieties are species *Diplacus aurantiacus*, *Diplacus grandiflorus*, and *Diplacus parviflorus*. *Diplacus aurantiacus* does not replace *Mimulus aurantiacus*; it replaces the variety *Mimulus aurantiacus aurantiacus*.
 
-Another way of understanding this issue is realizing that photos of all varieties *Mimulus aurantiacus aurantiacus*, *Mimulus aurantiacus grandiflorus*, *Mimulus aurantiacus parviflorus* and the 3 others have been used to train the classification model to recognize *Mimulus aurantiacus*. In the current taxonomy, this label is triggered for any of the species *Diplacus  aurantiacus*, *Diplacus grandiflorus*, and *Diplacus parviflorus*. `nature_id` cannot say which of current species it sees. It can only identify pictures as genus *Diplacus*.
+Another way to understand this issue is to realize that photos of all varieties *Mimulus aurantiacus aurantiacus*, *Mimulus aurantiacus grandiflorus*, *Mimulus aurantiacus parviflorus* and the 3 others were used to train the classification model to recognize *Mimulus aurantiacus*. In the current taxonomy, this label is triggered for each of the species *Diplacus  aurantiacus*, *Diplacus grandiflorus*, and *Diplacus parviflorus*. `nature_id` cannot say which of current species it sees. It can only identify images as genus *Diplacus*.
 
 ```
 Taxonomy written to file 'classifiers\aiy_plants_V1_taxonomy.csv'.
 ```
 
-A taxanomy for the scientific names in the label file has been sucessfully computed and this taxonomy was written to disk. Future calls will load this taxonomy instead of loading the labels and computing the taxonomy all over again.
+A taxonomy for the scientific names in the label file has been successfully computed and this taxonomy was written to disk. Future calls will load this taxonomy instead of loading the labels and re-computing the taxonomy.
 
 ```
 Reading common names from 'inaturalist-taxonomy\inaturalist-taxonomy.dwca.zip' member 'VernacularNames-english.csv'...
