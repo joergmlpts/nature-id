@@ -6,7 +6,7 @@ This project was inspired by the amazing progress in identifying plants, animals
 
 Google provides three models that have been trained with iNaturalist data - classification models for plants, birds, and insects. These Google models can be downloaded and used with Google's `TensorFlow` and `TensorFlow Lite` tools.
 
-This code is based on the trained models provided by Google. It was written to experiment with identifying species from photos and to try out Seek's approach to calculating probabilities across the taxonomic hierarchy.
+This code is based on the trained models provided by Google. It was written to experiment with identifying species from photos and to try out Seek's approach to calculating scores (probabilities) across the taxonomic hierarchy.
 
 This tool `nature_id.py` has been tested on Linux and Windows. It should also work on MacOS.
 
@@ -44,30 +44,30 @@ Classification of 'plant_images/Persicaria_amphibia.jpg' took 0.2 secs.
  97.6%     species Water Smartweed (Persicaria amphibia)
 ```
 
-These probabitities can be used to guide identification: define a threshold and report as result the taxon with the lowest probability that is larger than or equal to this threshold. In this example for a threshold of 95% an identification to species *Persicaria amphibia* has been achieved. For a threshold of 99%, this is only an identification to order *Caryophyllales*. 95% and 99% would be unusually high thresholds; Seek, I believe, uses a threshold of 70%.
+These scores can be used to guide identification: define a threshold and report as result the taxon with the lowest score that is larger than or equal to this threshold. In this example for a threshold of 95% an identification to species *Persicaria amphibia* has been achieved. For a threshold of 99%, this is only an identification to order *Caryophyllales*. 95% and 99% would be unusually high thresholds; Seek, I believe, uses a threshold of 70%.
 
 ## Command-line Options
 
 This script is a command-line utility. It is called with options, filenames and directory names as arguments. These options are supported:
 
 ```
-Usage: nature_id.py [-h] [-m MODEL] [-a] [-l] [-s] [-r RESULT_SIZE] file/directory [file/directory ...]
+usage: nature_id.py [-h] [-m MODEL] [-a] [-l] [-s] [-r RESULT_SIZE] file/directory [file/directory ...]
 
 positional arguments:
   file/directory        Image files or directories with images.
 
-optional arguments:
+options:
   -h, --help            show this help message and exit
   -m MODEL, --model MODEL
-                        Model to load to identify lifeforms.
+                        Model to load to identify organisms.
   -a, --all_common_names
                         Show all common names and not just one.
-  -l, --label_probabilities_only
-                        Compute and display only label probabilities, do not propagate probabilities across the hierachy.
+  -l, --label_scores_only
+                        Compute and display only label scores, do not propagate scores up the hierarchy.
   -s, --scientific_names_only
                         Only use scientific names, do not load common names.
   -r RESULT_SIZE, --result_size RESULT_SIZE
-                        Number of labels and their probabilities to report in results.
+                        Number of labels and their scores to report in results.
 ```
 
 ### Option -m MODEL, --model MODEL
@@ -93,9 +93,9 @@ Classification of 'plant_images/Phyla_nodiflora.jpg' took 0.2 secs.
  85.5%     species Turkey Tangle; Lippia; Common Lippia; Turkey Tangle Frogfruit; Sawtooth Fogfruit; Carpet Weed; Roundleaf Frogfruit; Texas Frogfruit; Cape Weed; Sawtooth Frogfruit; Lipia; Turkey Tangle Fogfruit; Daisy Lawn; Fog Grass (Phyla nodiflora)
 ```
 
-### Option -l, --label_probabilities_only
+### Option -l, --label_scores_only
 
-The `-l` and `--label_probabilities_only` options switch from the taxonomic hierarchy view to a flat list of labels and their probabilities. The output with this option looks like this:
+The `-l` and `--label_scores_only` options switch from the taxonomic hierarchy view to a flat list of labels and their scores. The output with this option looks like this:
 
 ![Solidago_velutina_ssp_californica.jpg](/plant_images/Solidago_velutina_ssp_californica.jpg)
 
@@ -108,7 +108,7 @@ Classification of 'plant_images/Solidago_velutina_ssp_californica.jpg' took 0.2 
   0.4% Stiff-Leaved Goldenrod (Solidago rigida)
 ```
 
-Five labels with decreasing probability are shown by default. The `-r` and `--result_size` options can be used to request fewer or more labels.
+Five labels with decreasing scores are shown by default. The `-r` and `--result_size` options can be used to request fewer or more labels.
 
 ### Option -s, --scientific_names_only
 
@@ -131,7 +131,7 @@ Classification of 'plant_images/Trichostema_lanceolatum.jpg' took 0.2 secs.
 
 ### Option -r RESULT_SIZE, --result_size RESULT_SIZE
 
-The `-r` and `--result_size` options modify the number of labels displayed when a flat list of labels is requested with the `-l` or `--label_probabilities_only` options. The default is 5. Options `-r` and `--result_size` allow you to choose a number between 1 and 100.
+The `-r` and `--result_size` options modify the number of labels displayed when a flat list of labels is requested with the `-l` or `--label_scores_only` options. The default is 5. Options `-r` and `--result_size` allow you to choose a number between 1 and 100.
 
 This is an example with 15 labels. The command-line for Linux is
 ```

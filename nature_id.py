@@ -25,10 +25,10 @@ INSTALL_DIR = inat_taxonomy.INSTALL_DIR
 CLASSIFIER_DIRECTORY = os.path.join(INSTALL_DIR, 'classifiers')
 
 # These flags can be modified with command-line options.
-scientific_names_only    = False # only scientific names or also common names
-label_probabilities_only = False # probabilities for labels or hierarchical
-all_common_names         = False # show only one or all common names
-result_sz                = 5     # result size (for label_probabilities_only)
+scientific_names_only = False # only scientific names or also common names
+label_scores_only     = False # scores for labels or hierarchical
+all_common_names      = False # show only one or all common names
+result_sz             = 5     # result size (for label_scores_only)
 
 # This class is used by class Taxonomy.
 class Taxon:
@@ -39,7 +39,7 @@ class Taxon:
         self.name = None          # scientific name
         self.common_name = None   # common name or None
         self.children = []        # list of child taxa
-        self.leaf_class_ids = []  # list of indices into probabilities; there
+        self.leaf_class_ids = []  # list of indices into scores; there
                                   # can be more than one when we use old models
                                   # whose taxa have since been lumped together
 
@@ -125,7 +125,7 @@ class Taxonomy:
             print(f"Read {len(self.idx2label):,} labels from '{filename}' "
                   f"in {time.time() - start_time:.1f} secs.")
 
-            if not label_probabilities_only:
+            if not label_scores_only:
                 self.compute_taxonomic_tree()
                 if self.taxonomy_available():
                     self.write_taxonomic_tree(filename.replace('labelmap',
@@ -138,7 +138,7 @@ class Taxonomy:
 
         if not scientific_names_only and self.taxonomy_available():
             inat_taxonomy.annotate_common_names(self.id2taxon, all_common_names)
-            if label_probabilities_only:
+            if label_scores_only:
                 self.annotate_labels_with_common_names()
         del self.id2taxon # not needed anymore
 
@@ -177,15 +177,12 @@ class Taxonomy:
     # Adds all the labels' direct and indirect ancestors to compute
     # the taxonomic tree.
     def compute_taxonomic_tree(self):
-        global label_probabilities_only
+        global label_scores_only
         if not inat_taxonomy.load_inat_taxonomy():
-            label_probabilities_only = True
+            label_scores_only = True
             return
 
         start_time = time.time()
-        IDX_ID         = inat_taxonomy.IDX_ID
-        IDX_NAME       = inat_taxonomy.IDX_NAME
-        IDX_RANK_LEVEL = inat_taxonomy.IDX_RANK_LEVEL
         new_id = 0   # id's we add on the fly for pseudo-kingdoms
 
         for idx, name in self.idx2label.items():
@@ -203,34 +200,32 @@ class Taxonomy:
                 continue
 
             inat_taxon, ancestors = inat_taxa
-            if name != inat_taxon[IDX_NAME]:
+            if name != inat_taxon.name:
                 print(f"Info: Taxon '{name}' changed to "
-                      f"'{inat_taxon[IDX_NAME]}', iNat taxa "
-                      f"id {inat_taxon[IDX_ID]}.")
+                      f"'{inat_taxon.name}', iNat taxa "
+                      f"id {inat_taxon.id}.")
 
             # ancestor taxa
             prev_ancestor = self.root
             for ancestor in ancestors:
-                id, parent_id, name, rank_level = ancestor
-                if id in self.id2taxon:
-                    prev_ancestor = self.id2taxon[id]
+                if ancestor.id in self.id2taxon:
+                    prev_ancestor = self.id2taxon[ancestor.id]
                 else:
-                    self.id2taxon[id] = ancestor_taxon = Taxon(id)
-                    ancestor_taxon.name = name
-                    ancestor_taxon.rank_level = rank_level
+                    self.id2taxon[ancestor.id] = ancestor_taxon = Taxon(ancestor.id)
+                    ancestor_taxon.name = ancestor.name
+                    ancestor_taxon.rank_level = ancestor.rank_level
                     prev_ancestor.add_child(ancestor_taxon)
                     prev_ancestor = ancestor_taxon
 
             # this taxon
-            id, parent_id, name, rank_level = inat_taxon
-            if id in self.id2taxon:
-                taxon = self.id2taxon[id]
-                assert taxon.name == name
-                assert taxon.rank_level == rank_level
+            if inat_taxon.id in self.id2taxon:
+                taxon = self.id2taxon[inat_taxon.id]
+                assert taxon.name == inat_taxon.name
+                assert taxon.rank_level == inat_taxon.rank_level
             else:
-                self.id2taxon[id] = taxon = Taxon(id)
-                taxon.name = name
-                taxon.rank_level = rank_level
+                self.id2taxon[inat_taxon.id] = taxon = Taxon(inat_taxon.id)
+                taxon.name = inat_taxon.name
+                taxon.rank_level = inat_taxon.rank_level
                 prev_ancestor.add_child(taxon)
             taxon.leaf_class_ids.append(idx)
 
@@ -238,35 +233,35 @@ class Taxonomy:
               f"{time.time() - start_time:.1f} secs: {len(self.id2taxon)-1:,} "
               f"taxa including {len(self.idx2label):,} leaf taxa.")
 
-    # propagate probabilities to taxon and all below
-    def assign_scores(self, taxon, probabilities):
+    # propagate scores to taxon and all below
+    def assign_scores(self, taxon, scores):
         taxon.score = 0.0
         for leaf_class_id in taxon.leaf_class_ids:
-            taxon.score += probabilities[leaf_class_id]
+            taxon.score += scores[leaf_class_id]
         for child in taxon.children:
-            self.assign_scores(child, probabilities)
+            self.assign_scores(child, scores)
             taxon.score += child.score
 
-    # Returns list of 5-tuples (probability, taxon_id, taxonomic rank,
+    # Returns list of 5-tuples (score, taxon_id, taxonomic rank,
     # scientific name, common name) ordered by taxonomic rank from kingdom
     # down to e.g. species.
-    # Returns pairs (probability, scientific name) if label_probabilities_only
+    # Returns pairs (score, scientific name) if label_scores_only
     # is set.
-    def prediction(self, probabilities):
+    def prediction(self, scores):
 
-        if label_probabilities_only:
-            # return list of pairs (probability, scientific name)
-            total = np.sum(probabilities)
-            indices = np.argpartition(probabilities, -result_sz)[-result_sz:]
-            results = [(probabilities[i] / total, self.idx2label[i])
-                       for i in indices if probabilities[i] != 0]
+        if label_scores_only:
+            # return list of pairs (score, scientific name)
+            total = np.sum(scores)
+            indices = np.argpartition(scores, -result_sz)[-result_sz:]
+            results = [(scores[i] / total, self.idx2label[i])
+                       for i in indices if scores[i] != 0]
             results.sort(reverse=True)
             return results
 
-        # annotate all taxa across the hierarchy with probabilities.
-        self.assign_scores(self.root, probabilities)
+        # annotate all taxa across the hierarchy with scores.
+        self.assign_scores(self.root, scores)
 
-        # return one hierarchical path guided by probabilities
+        # return one hierarchical path guided by scores
         path = []
         taxon = self.root
         while taxon.children:
@@ -295,6 +290,14 @@ class Taxonomy:
 class OfflineClassifier:
 
     def __init__(self, filenames):
+        self.min_pixel_value = 0.0
+        self.max_pixel_value = 255.0
+
+        if os.path.split(filenames[0])[1] in ['optimized_model.tflite',
+                                              'optimized_model_v1.tflite']:
+            self.min_pixel_value = -1.0
+            self.max_pixel_value = 1.0
+
         # Load TFLite model and allocate tensors.
         self.mInterpreter = tflite.Interpreter(model_path=filenames[0])
         self.mInterpreter.allocate_tensors()
@@ -354,9 +357,8 @@ class OfflineClassifier:
         input_data = np.array([np.array(img, self.mInput_details[0]['dtype'])])
 
         if self.mInput_details[0]['dtype'] == np.float32:
-            # normalize floats to range -1.0 ... 1.0
-            input_data -= 128.0
-            input_data /= 128
+            input_data *= (self.max_pixel_value - self.min_pixel_value) / 255.0
+            input_data += self.min_pixel_value
 
         self.mInterpreter.set_tensor(self.mInput_details[0]['index'],
                                      input_data)
@@ -384,7 +386,9 @@ def get_installed_models():
     for filename in os.listdir(CLASSIFIER_DIRECTORY):
         model = None
         if filename.endswith(".csv"):
-            if filename == 'taxonomy.csv':
+            if filename == 'INatVision_2_4_taxonomy.csv':
+                model = 'INatVision_2_4'
+            elif filename == 'taxonomy_v1.csv':
                 model = 'Seek'
             else:
                 for m in choices:
@@ -400,7 +404,9 @@ def get_installed_models():
                 else:
                     models[model] = (None, filename)
         elif filename.endswith(".tflite"):
-            if filename == 'optimized_model.tflite':
+            if filename == 'INatVision_2_4_fact256_unscaled_8bit.tflite':
+                model = 'INatVision_2_4'
+            elif filename == 'optimized_model_v1.tflite':
                 model = 'Seek'
             else:
                 for m in choices:
@@ -437,7 +443,7 @@ def get_installed_models():
 def identify_species(classifier, filename):
     result = classifier.classify_image(filename)
     if result:
-        # Print list of tuples (probability, taxon id, taxonomic rank, name)
+        # Print list of tuples (score, taxon id, taxonomic rank, name)
         # ordered by taxonomic rank from kingdom down to species.
         for entry in result:
             if len(entry) == 2: # labels only
@@ -479,40 +485,39 @@ def file_directory_check(arg):
 if __name__ == '__main__':
     import argparse
 
-    # For Ubuntu 18.04 where stdout has not been opened for Unicode.
-    sys.stdout = open(sys.stdout.fileno(), mode='w',
-                      encoding='utf8', buffering=1)
-
-    preferred = 'Seek' # default if this model is available
+    preferred1 = 'INatVision_2_4' # default if this model is available
+    preferred2 = 'Seek'           # second preference
 
     parser = argparse.ArgumentParser()
-    if len(models) == 1 or preferred in models:
-        default_model = next(iter(models)) if len(models) == 1 else preferred
+    if len(models) == 1 or preferred1 in models or preferred2 in models:
+        default_model = preferred1 if preferred1 in models else \
+                        preferred2 if preferred2 in models else \
+                        next(iter(models))
         parser.add_argument("-m", "--model", type=model_parameter_check,
                             default=default_model,
-                            help="Model to load to identify lifeforms.")
+                            help="Model to load to identify organisms.")
     else: # no default for classification model
         parser.add_argument("-m", "--model", type=model_parameter_check,
                             required=True,
-                            help="Model to load to identify lifeforms.")
+                            help="Model to load to identify organisms.")
     parser.add_argument('-a', '--all_common_names', action="store_true",
                         help='Show all common names and not just one.')
-    parser.add_argument('-l', '--label_probabilities_only', action="store_true",
-                        help='Compute and display only label probabilities, '
-                        'do not propagate probabilities across the hierachy.')
+    parser.add_argument('-l', '--label_scores_only', action="store_true",
+                        help='Compute and display only label scores, '
+                        'do not propagate scores up the hierarchy.')
     parser.add_argument('-s', '--scientific_names_only', action="store_true",
                         help='Only use scientific names, do not load common '
                         'names.')
     parser.add_argument('-r', '--result_size', type=result_size_check,
                         default=result_sz, help='Number of labels and their '
-                        'probabilities to report in results.')
+                        'scores to report in results.')
     parser.add_argument('files_dirs', metavar='file/directory',
                         type=file_directory_check, nargs='+',
                         help='Image files or directories with images.')
     args = parser.parse_args()
 
     scientific_names_only = args.scientific_names_only
-    label_probabilities_only = args.label_probabilities_only
+    label_scores_only = args.label_scores_only
     all_common_names = args.all_common_names
     result_sz = args.result_size
 

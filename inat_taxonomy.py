@@ -1,11 +1,13 @@
 import csv, sys, os, time, locale, zipfile, io
 import inat_api
+from dataclasses import dataclass
+from typing import List, Dict
 
 # The directory where this Python script is located.
-INSTALL_DIR = os.path.dirname(sys.argv[0])
-if os.path.islink(sys.argv[0]):
+INSTALL_DIR = os.path.dirname(__file__)
+while os.path.islink(INSTALL_DIR):
     INSTALL_DIR = os.path.join(INSTALL_DIR,
-                               os.path.dirname(os.readlink(sys.argv[0])))
+                               os.path.dirname(os.readlink(INSTALL_DIR)))
 
 # This zip file contains the taxonomy and all common names.
 # Download https://www.inaturalist.org/taxa/inaturalist-taxonomy.dwca.zip and
@@ -74,22 +76,24 @@ def get_rank_name(rank_level, default_name = 'clade'):
     return gRankLevel2Name[rank_level] if rank_level in gRankLevel2Name \
            else default_name
 
+@dataclass(frozen=True)
+class Taxon:
+    id        : int
+    parent_id : int
+    name      : str
+    rank_level: float
+
 # iNaturalist taxa, only loaded when a taxonomic tree needs
 # to be computed from a label file.
 
-gName2Taxa = {}  # maps name to lists of taxa
-gId2Taxon = {}   # maps id to taxon
+gName2Taxa: Dict[str,List[Taxon]] = {}
+"maps taxon name to list of taxa"
 
-# Taxa are represented by 4-tuples (id, parent_id, name, rank_level)
-# These tuples can be indexed with the below constants to access their elements.
+gId2Taxon: Dict[int,Taxon]        = {}
+"maps taxon id to taxon"
 
-IDX_ID         = 0
-IDX_PARENT_ID  = 1
-IDX_NAME       = 2
-IDX_RANK_LEVEL = 3
-
-# load all iNataturalist taxa from file taxa.csv
 def load_inat_taxonomy():
+    "Load all iNaturalist taxa from file 'taxa.csv'."
     global gName2Taxa
     global gId2Taxon
 
@@ -126,7 +130,7 @@ def load_inat_taxonomy():
                             else:
                                 gName2RankLevel[rank] = -1
                         rank_level = gName2RankLevel[rank]
-                        inat_taxon = (id, parent_id, name, rank_level)
+                        inat_taxon = Taxon(id, parent_id, name, rank_level)
                         if name in gName2Taxa:
                             gName2Taxa[name].append(inat_taxon)
                         else:
@@ -151,8 +155,8 @@ def load_inat_taxonomy():
         gId2Taxon = {}
         return False
 
-# capitalize (most) words in common name; helper function for common names
 def beautify_common_name(name):
+    "Capitalize (most) words in common name; helper function for common names."
     if name.endswith(' [paraphyletic]'):
         name = name[:-15] # fix dicots
     name =  '-'.join(word[0].upper() + word[1:]
@@ -161,9 +165,11 @@ def beautify_common_name(name):
                     else word[0].upper() + word[1:]
                     for word in name.split())
 
-# Load the common names in our language, annotate taxonomic tree with them.
-# The parameter `id2taxon' includes the taxa we are interested in.
 def annotate_common_names(id2taxon, all_common_names = False):
+    """
+    Load the common names in our language, annotate taxonomic tree with them.
+    The parameter `id2taxon' includes the taxa we are interested in.
+    """
     start_time = time.time()
     language, _ = locale.getdefaultlocale()
 
@@ -229,17 +235,21 @@ def annotate_common_names(id2taxon, all_common_names = False):
         print(f"Cannot load common names from archive '{INAT_TAXONOMY}':"
               f" {str(e)}.")
 
-# ancestors are a list of 4-tuples (id, parent_id, name, rank_level)
-# they are ordered from the kingdom down
 def get_ancestors(id, ancestors):
+    """
+    Ancestors are a list of instances of Taxon; they are ordered from the
+    kingdom down.
+    """
     taxon = gId2Taxon[id]
-    if taxon[IDX_RANK_LEVEL] < KINGDOM_RANK_LEVEL:
-        get_ancestors(taxon[IDX_PARENT_ID], ancestors)
+    if taxon.rank_level < KINGDOM_RANK_LEVEL:
+        get_ancestors(taxon.parent_id, ancestors)
     ancestors.append(taxon)
 
-# Lookup by name, returns a pair, a 4-tuple and its ancestors, a list of
-# 4-tuples. Desired_ranks are returned in case of ambiguities (duplicate names).
 def lookup_id(name, desired_ranks = ['species', 'subspecies']):
+    """
+    Lookup by name, returns a pair, a Taxon and its ancestors, a list of
+    Taxon. Desired_ranks are returned in case of ambiguities (duplicate names).
+    """
     if not gName2Taxa:
         return None # taxonomy not loaded
     if name in gName2Taxa:
@@ -251,20 +261,20 @@ def lookup_id(name, desired_ranks = ['species', 'subspecies']):
             prefix = ' '
             taxon = None
             for t in taxa:
-                rank = get_rank_name(t[IDX_RANK_LEVEL])
-                print(f"{prefix}{rank} {t[IDX_ID]}", end='')
+                rank = get_rank_name(t.rank_level)
+                print(f"{prefix}{rank} {t.id}", end='')
                 if rank in desired_ranks:
                     taxon = t
                 prefix = ', '
             if not taxon:
                 taxon = taxa[0]
-            rank = get_rank_name(taxon[IDX_RANK_LEVEL])
+            rank = get_rank_name(taxon.rank_level)
             print(f"; choosing {rank}.")
         else:
             taxon = taxa[0]
         ancestors = []
-        if taxon[IDX_RANK_LEVEL] < KINGDOM_RANK_LEVEL:
-            get_ancestors(taxon[IDX_PARENT_ID], ancestors)
+        if taxon.rank_level < KINGDOM_RANK_LEVEL:
+            get_ancestors(taxon.parent_id, ancestors)
         return (taxon, ancestors)
     else:
         # likely taxon change, query iNat API
@@ -287,19 +297,19 @@ def lookup_id(name, desired_ranks = ['species', 'subspecies']):
             return
         while len(taxa) > 1:
             # multiple taxa, find their common ancestor
-            min_rank_level = min([taxon[IDX_RANK_LEVEL] for taxon in taxa])
+            min_rank_level = min([taxon.rank_level for taxon in taxa])
             new_taxa = set()
             for taxon in taxa:
-                new_taxon = gId2Taxon[taxon[IDX_PARENT_ID]] \
-                              if taxon[IDX_RANK_LEVEL] == min_rank_level \
+                new_taxon = gId2Taxon[taxon.parent_id] \
+                              if taxon.rank_level == min_rank_level \
                               else taxon
                 if not new_taxon in new_taxa:
                     new_taxa.add(new_taxon)
             taxa = new_taxa
         taxon = taxa.pop()
         ancestors = []
-        if taxon[IDX_RANK_LEVEL] < KINGDOM_RANK_LEVEL:
-            get_ancestors(taxon[IDX_PARENT_ID], ancestors)
+        if taxon.rank_level < KINGDOM_RANK_LEVEL:
+            get_ancestors(taxon.parent_id, ancestors)
         return (taxon, ancestors)
 
 
