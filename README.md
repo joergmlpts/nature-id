@@ -167,17 +167,17 @@ Several things need to be installed in order for `nature-id.py` to run. Some Pyt
 
 This code is written in Python 3. Besides Python 3, the packages `Pillow` and `requests` are used to load and process images and to access the iNaturalist API.
 
-These packages as well as `Tensorflow Lite` can be installed on Ubuntu Linux and other Debian distributions with the command
+These packages as well as `TensorFlow Lite` can be installed on Ubuntu Linux and other Debian distributions with the command
 
 ```
 sudo apt install python3-pillow python3-requests
-pip3 install tflite
+pip3 install tflite-runtime
 ```
 
 and on other platforms with the command
 
 ```
-pip install Pillow requests tflite
+pip install Pillow requests tflite-runtime
 ```
 
 Where appropriate `pip3` should be called instead of `pip` to avoid accidentally installing Python 2 packages.
