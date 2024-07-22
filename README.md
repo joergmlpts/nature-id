@@ -185,6 +185,8 @@ Where appropriate `pip3` should be called instead of `pip` to avoid accidentally
 
 ### Classification Models
 
+**The following instructions appear not to work anymore since the models moved from google.com to kaggle.com. [Issue #1](https://github.com/joergmlpts/nature-id/issues/1) tracks this issue.**
+
 The classification models and their labelmap files have to be downloaded from Google and they go into directory `classifiers`.
 
 The classifiers can be downloaded from these links:
