@@ -185,19 +185,17 @@ Where appropriate `pip3` should be called instead of `pip` to avoid accidentally
 
 ### Classification Models
 
-**The following instructions appear not to work anymore since the models moved from google.com to kaggle.com. [Issue #1](https://github.com/joergmlpts/nature-id/issues/1) tracks this issue.**
-
-The classification models and their labelmap files have to be downloaded from Google and they go into directory `classifiers`.
+The classification models and their labelmap files have to be downloaded from Kaggle and they go into directory `classifiers`.
 
 The classifiers can be downloaded from these links:
 
- * [classifier for plants](https://tfhub.dev/google/aiy/vision/classifier/plants_V1/1)
- * [classifier for birds](https://tfhub.dev/google/aiy/vision/classifier/birds_V1/1)
- * [classifier for insects](https://tfhub.dev/google/aiy/vision/classifier/insects_V1/1)
+ * [classifier for plants](https://www.kaggle.com/models/google/aiy/tensorFlow1/vision-classifier-plants-v1/1)
+ * [classifier for birds](https://www.kaggle.com/models/google/aiy/tensorFlow1/vision-classifier-birds-v1/1)
+ * [classifier for insects](https://www.kaggle.com/models/google/aiy/tensorFlow1/vision-classifier-insects-v1/1)
 
-Each classifier consists of a `.tflite` model and a `.csv` labelmap file. Both are required.
+Each classifier consists of a `.tflite` model and a `.csv` labelmap file. Both are required. Click on `Model Variations` under `TensorFlow Lite` to download the TFLite model. Please also note the paragraphs at the bottom of these web pages about appropriate and inappropriate use cases and licensing.
 
-On the web pages above scroll down and under **Output** click on *labelmap* to download and save the labels. On Windows, the default action for a .csv file might be to open it in Excel. Be certain to save the .csv file to disk instead. Then scroll back up and under **Model formats** switch to *TFLite (aiyvision/classifier/...)*. There click on *Download* to get the `.tflite` file. Please also note the paragraphs at the bottom of these web pages about appropriate and inappropriate use cases and licensing.
+These are the links to download the labelmaps: [aiy_insects_V1_labelmap.csv](https://www.gstatic.com/aihub/tfhub/labelmaps/aiy_insects_V1_labelmap.csv), [aiy_birds_V1_labelmap.csv](https://www.gstatic.com/aihub/tfhub/labelmaps/aiy_birds_V1_labelmap.csv), and [aiy_plants_V1_labelmap.csv](https://www.gstatic.com/aihub/tfhub/labelmaps/aiy_plants_V1_labelmap.csv). On Windows, the default action for a .csv file may be to open it in Excel; be sure to save the downloaded file to disk.
 
 ### Taxonomy and Common Names Files
 
