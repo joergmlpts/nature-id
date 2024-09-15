@@ -386,8 +386,8 @@ def get_installed_models():
     for filename in os.listdir(CLASSIFIER_DIRECTORY):
         model = None
         if filename.endswith(".csv"):
-            if filename == 'INatVision_2_4_taxonomy.csv':
-                model = 'INatVision_2_4'
+            if filename == 'taxonomy_v2_13.csv':
+                model = 'v2_13'
             elif filename == 'taxonomy_v1.csv':
                 model = 'Seek'
             else:
@@ -404,8 +404,8 @@ def get_installed_models():
                 else:
                     models[model] = (None, filename)
         elif filename.endswith(".tflite"):
-            if filename == 'INatVision_2_4_fact256_unscaled_8bit.tflite':
-                model = 'INatVision_2_4'
+            if filename == 'optimized_model_v2_13.tflite':
+                model = 'v2_13'
             elif filename == 'optimized_model_v1.tflite':
                 model = 'Seek'
             else:
@@ -485,8 +485,8 @@ def file_directory_check(arg):
 if __name__ == '__main__':
     import argparse
 
-    preferred1 = 'INatVision_2_4' # default if this model is available
-    preferred2 = 'Seek'           # second preference
+    preferred1 = 'v2_13' # default if this model is available
+    preferred2 = 'Seek'  # second preference
 
     parser = argparse.ArgumentParser()
     if len(models) == 1 or preferred1 in models or preferred2 in models:
