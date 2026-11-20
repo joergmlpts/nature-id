@@ -533,5 +533,5 @@ if __name__ == '__main__':
         elif os.path.isdir(arg):
             for file in os.listdir(arg):
                 ext = os.path.splitext(file)[1].lower()
-                if ext in ['.jpg', '.jepg', '.png']:
+                if ext in ['.jpg', '.jpeg', '.png']:
                     identify_species(classifier, os.path.join(arg, file))
