@@ -5,18 +5,26 @@ from PIL import Image, ImageOps
 import csv, sys, os, time
 import inat_taxonomy
 
+tfinterp = 'ai_edge_litert'
 try:
-    # try importing TensorFlow Lite first
-    import tflite_runtime.interpreter as tflite
+    # try importing ai edge Lite first    
+    import ai_edge_litert.interpreter as tflite
 except Exception:
     try:
-        # TensorFlow Lite not found, try to import full TensorFlow
-        import tensorflow.lite as tflite
+        # try importing TensorFlow Lite next
+        import tflite_runtime.interpreter as tflite
+        tfinterp = 'tflite_runtime'
     except Exception:
-        print('Error: TensorFlow Lite could not be loaded.', file=sys.stderr)
-        print('       Follow instructions at https://www.tensorflow.org/lite/'
-              'guide/python to install it.', file=sys.stderr)
-        sys.exit(1)
+        try:
+            # TensorFlow Lite not found, try to import full TensorFlow
+            import tensorflow.lite as tflite
+            tfinterp = 'tensorflow.lite'
+        except Exception:
+            print('Error: TensorFlow Lite could not be loaded.', file=sys.stderr)
+            print('       Follow instructions at https://www.tensorflow.org/lite/'
+                  'guide/python to install it.', file=sys.stderr)
+            sys.exit(1)
+print(f"Info: Using Interpreter from {tfinterp}")
 
 # The directory where this Python script is located.
 INSTALL_DIR = inat_taxonomy.INSTALL_DIR
