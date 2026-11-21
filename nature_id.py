@@ -478,6 +478,17 @@ def file_directory_check(arg):
         return arg
     raise argparse.ArgumentTypeError(f"'{arg}' is not a file or directory.")
 
+def dir_loop(arg):
+    for file in os.listdir(arg):
+        if os.path.isdir(os.path.join(arg, file)):
+            dir_loop(os.path.join(arg, file))
+        else:
+            ext = os.path.splitext(file)[1].lower()
+            if ext in ['.jpg', '.jpeg', '.png']:
+                try:
+                    identify_species(classifier, os.path.join(arg, file))
+                except Exception as e:
+                    print(f"Error: from {os.path.join(arg, file)} - {e}" , file=sys.stderr)
 #
 # Identify species for picture files and directories given as command line args
 #
@@ -529,9 +540,9 @@ if __name__ == '__main__':
 
     for arg in args.files_dirs:
         if os.path.isfile(arg):
-            identify_species(classifier, arg)
+            try:
+                identify_species(classifier, arg)
+            except Exception as e:
+                print(f"Error: from {arg} - {e}" , file=sys.stderr)
         elif os.path.isdir(arg):
-            for file in os.listdir(arg):
-                ext = os.path.splitext(file)[1].lower()
-                if ext in ['.jpg', '.jpeg', '.png']:
-                    identify_species(classifier, os.path.join(arg, file))
+            dir_loop(arg)
