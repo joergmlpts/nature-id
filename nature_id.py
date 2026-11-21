@@ -478,10 +478,10 @@ def file_directory_check(arg):
         return arg
     raise argparse.ArgumentTypeError(f"'{arg}' is not a file or directory.")
 
-def dir_loop(arg):
+def dir_loop(arg, classifier):
     for file in os.listdir(arg):
         if os.path.isdir(os.path.join(arg, file)):
-            dir_loop(os.path.join(arg, file))
+            dir_loop(os.path.join(arg, file), classifier)
         else:
             ext = os.path.splitext(file)[1].lower()
             if ext in ['.jpg', '.jpeg', '.png']:
@@ -545,4 +545,4 @@ if __name__ == '__main__':
             except Exception as e:
                 print(f"Error: from {arg} - {e}" , file=sys.stderr)
         elif os.path.isdir(arg):
-            dir_loop(arg)
+            dir_loop(arg, classifier)
